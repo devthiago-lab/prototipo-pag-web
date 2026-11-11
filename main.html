@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Plantas resistentes para tu casa, directo del vivero.">
+  <title>Vivero Hoja - Tienda de plantas</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cellipse cx='50' cy='50' rx='22' ry='40' fill='%232F5D3A'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&amp;family=DM+Sans:wght@400;500;700&amp;display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <span class="logo">Vivero Hoja</span>
+    <div class="session">
+      <button type="button" class="link-button" id="login-button">Ingresar</button>
+      <span class="admin-badge" id="admin-badge" hidden></span>
+      <button type="button" class="link-button" id="logout-button" hidden>Cerrar sesión</button>
+    </div>
+    <button type="button" class="cart-button" id="open-cart">
+      Carrito <span class="cart-count" id="cart-count">0</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <h1>Plantas que sí sobreviven en tu casa.</h1>
+        <p>Elegimos especies resistentes, las cuidamos en el vivero y te las llevamos listas para plantar.</p>
+        <a class="cta" href="#shop">Ver plantas</a>
+      </div>
+      <div class="hero-art" id="hero-art" aria-hidden="true"></div>
+    </section>
+
+    <section id="shop" aria-labelledby="shop-title">
+      <h2 id="shop-title" class="sr-only">Catálogo de plantas</h2>
+      <div class="tools">
+        <div class="chips" id="chips" role="group" aria-label="Categorías"></div>
+        <input type="search" id="search" placeholder="Buscar planta" aria-label="Buscar planta">
+        <select id="sort" aria-label="Ordenar productos">
+          <option value="">Ordenar</option>
+          <option value="asc">Precio: menor a mayor</option>
+          <option value="desc">Precio: mayor a menor</option>
+          <option value="name">Nombre A-Z</option>
+        </select>
+        <button type="button" class="add-product" id="add-product" hidden>Agregar producto</button>
+      </div>
+      <div class="grid" id="grid"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    Página v3. Código: <span id="app-version">sin cargar</span>
+  </footer>
+
+  <!-- Carrito lateral. "inert" lo saca del foco y de los lectores de pantalla mientras esta cerrado. -->
+  <div class="scrim" id="scrim"></div>
+  <aside class="cart" id="cart" aria-labelledby="cart-title" inert>
+    <div class="cart-head">
+      <h2 id="cart-title">Tu carrito</h2>
+      <button type="button" class="close" id="close-cart">Cerrar</button>
+    </div>
+    <div class="cart-items" id="cart-items"></div>
+    <div class="cart-total"><span>Total</span><span id="cart-total">$0</span></div>
+    <button type="button" class="pay" id="pay">Finalizar compra</button>
+  </aside>
+
+  <!-- Formulario del pedido. Se envia a Google Apps Script desde app.js. -->
+  <dialog class="modal" id="checkout" aria-labelledby="checkout-title">
+    <form id="checkout-form">
+      <h2 id="checkout-title">Datos del pedido</h2>
+      <p class="modal-summary" id="checkout-summary"></p>
+
+      <label class="field">
+        <span>Nombre y apellido</span>
+        <input type="text" name="name" autocomplete="name" required minlength="2" maxlength="80">
+      </label>
+
+      <label class="field">
+        <span>Teléfono</span>
+        <input type="tel" name="phone" autocomplete="tel" required minlength="6" maxlength="30">
+      </label>
+
+      <label class="field">
+        <span>Email (opcional)</span>
+        <input type="email" name="email" autocomplete="email" maxlength="100">
+      </label>
+
+      <label class="field">
+        <span>Dirección de entrega</span>
+        <input type="text" name="address" autocomplete="street-address" required minlength="5" maxlength="150">
+      </label>
+
+      <label class="field">
+        <span>Notas (opcional)</span>
+        <textarea name="notes" rows="3" maxlength="300"></textarea>
+      </label>
+
+      <!-- Campo trampa contra bots: las personas no lo ven ni pueden enfocarlo. -->
+      <div class="trap" inert>
+        <label>No completar este campo <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+      </div>
+
+      <p class="form-status" id="form-status" role="alert"></p>
+
+      <div class="form-actions">
+        <button type="button" class="secondary" id="cancel-checkout">Volver</button>
+        <button type="submit" class="pay" id="submit-order">Enviar pedido</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Ingreso de administrador: se valida en Google Apps Script. -->
+  <dialog class="modal" id="login-dialog" aria-labelledby="login-title">
+    <form id="login-form">
+      <h2 id="login-title">Ingreso de administrador</h2>
+      <label class="field">
+        <span>Usuario</span>
+        <input type="text" name="username" autocomplete="username" required maxlength="40">
+      </label>
+      <label class="field">
+        <span>Contraseña</span>
+        <input type="password" name="password" autocomplete="current-password" required maxlength="100">
+      </label>
+      <p class="form-status" id="login-status" role="alert"></p>
+      <div class="form-actions">
+        <button type="button" class="secondary" id="cancel-login">Cancelar</button>
+        <button type="submit" class="pay" id="login-submit">Ingresar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Alta y edicion de productos (solo administrador). -->
+  <dialog class="modal" id="product-dialog" aria-labelledby="product-title">
+    <form id="product-form">
+      <h2 id="product-title">Producto</h2>
+      <label class="field">
+        <span>Nombre</span>
+        <input type="text" name="name" required maxlength="60">
+      </label>
+      <label class="field">
+        <span>Categoría</span>
+        <input type="text" name="category" required maxlength="30" list="category-list">
+        <datalist id="category-list"></datalist>
+      </label>
+      <label class="field">
+        <span>Precio en pesos</span>
+        <input type="number" name="price" required min="1" max="100000000" step="1" inputmode="numeric">
+      </label>
+      <label class="field">
+        <span>Detalle (opcional)</span>
+        <input type="text" name="detail" maxlength="60">
+      </label>
+      <label class="field">
+        <span>Dibujo</span>
+        <select name="type" id="product-type" required></select>
+      </label>
+      <div class="color-row">
+        <label class="field">
+          <span>Color del dibujo</span>
+          <input type="color" name="color" value="#2f7d4a">
+        </label>
+        <label class="field">
+          <span>Color de fondo</span>
+          <input type="color" name="bg" value="#ddebc8">
+        </label>
+      </div>
+      <p class="form-status" id="product-status" role="alert"></p>
+      <div class="form-actions">
+        <button type="button" class="secondary" id="cancel-product">Cancelar</button>
+        <button type="submit" class="pay" id="product-submit">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
